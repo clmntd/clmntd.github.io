@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Maze</title>
+    <style>
+        body {
+            margin: 0;
+        }
+
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Include Three.js -->
+    <script src="three.min.js"></script>
+    <script src="PointerLockControls.js"></script>
+
+    <!-- Include OrbitControls from the local file -->
+    <script src="controls/OrbitControls.js"></script>
+
+    <script>
+        if (typeof THREE === "undefined" || !THREE.OrbitControls) {
+            console.error("THREE.OrbitControls is not available!");
+        } else {
+            console.log("OrbitControls is available.");
+            // Explicitly attach OrbitControls to THREE object
+            THREE.OrbitControls = OrbitControls;
+        }
+    </script>
+
+    <!-- Include dat.GUI for the UI -->
+    <script src="https://cdn.jsdelivr.net/npm/dat.gui@0.7.7/build/dat.gui.min.js"></script>
+
+    <!-- Main JavaScript File -->
+    <script src="main.js" defer></script>
+</body>
+
+</html>
