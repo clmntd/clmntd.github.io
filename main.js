@@ -376,7 +376,7 @@ function checkForExit() {
             if (distance < 0.5) {
                 score += params.mazeSize;
                 updateScoreDisplay();
-                generateMaze();
+                // generateMaze();
             }
         }
     });
