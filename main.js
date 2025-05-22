@@ -30,6 +30,25 @@ function updateScoreDisplay() {
     highScoreDisplay.innerText = `High Score: ${highScore}`;
 }
 
+
+
+
+let currentWallTextureIndex = 0;
+let currentFloorTextureIndex = 0;
+
+//made the images into an array
+const textureLoader = new THREE.TextureLoader();
+const wallTextures = [
+    textureLoader.load('textures/hedge_wall.jpg'),
+    textureLoader.load('textures/dungeon_wall.jpg'),
+    textureLoader.load('textures/glass.png')
+];
+const floorTextures = [ 
+    textureLoader.load('textures/hedge_floor.jpg'),
+    textureLoader.load('textures/dungeon_floor.jpg'),
+    textureLoader.load('textures/glass.png')
+];
+
 //# GUI setup
 const gui = new dat.GUI();
 gui.domElement.style.position = 'fixed';
@@ -37,6 +56,23 @@ gui.domElement.style.top = '10px';
 gui.domElement.style.right = '5px';
 gui.domElement.style.zIndex = '110';
 document.body.appendChild(gui.domElement);
+
+const themes = {
+    Hedge: 0,
+    Dungeon: 1,
+    Glass: 2
+};
+
+const textureParams = {
+    theme: 'Hedge'
+};
+
+gui.add(textureParams, 'theme', Object.keys(themes)).onChange(value => {
+    const index = themes[value];
+    currentWallTextureIndex = index;
+    currentFloorTextureIndex = index;
+    generateMaze();
+});
 
 const params = {
     mazeSize: 5,
@@ -276,15 +312,54 @@ function generateMazeRecursiveBacktracking(size) {
     return maze;
 }
 
+function getWallMaterial(index) {
+    // If "Glass" theme is selected (index 2), return transparent material
+    if (index === 2) {
+        return new THREE.MeshBasicMaterial({
+            map: wallTextures[index],
+            transparent: true,
+            side: THREE.DoubleSide,
+            alphaTest: 0.5
+        });
+    } else {
+        return new THREE.MeshStandardMaterial({
+            map: wallTextures[index]
+        });
+    }
+}
+
+function getFloorMaterial(index) {
+    if (index === 2) {
+        return new THREE.MeshBasicMaterial({
+            map: floorTextures[index],
+            transparent: true,
+            side: THREE.DoubleSide,
+            alphaTest: 0.5
+        });
+    } else {
+        return new THREE.MeshStandardMaterial({
+            map: floorTextures[index]
+        });
+    }
+}
+
+//updated to apply custom textures and what not
 function createWall(x, y, z) {
-    const wall = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardMaterial({ color: 0x8B4513 }));
+    //const material = new THREE.MeshStandardMaterial({ map: wallTextures[currentWallTextureIndex] });
+
+    const material = getWallMaterial(currentWallTextureIndex);
+
+    const wall = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), material);
     wall.position.set(x, y + 0.55, z);
     scene.add(wall);
     collidableMeshes.push(wall);
 }
 
 function createFloorTile(x, y, z) {
-    const floor = new THREE.Mesh(new THREE.BoxGeometry(1, 0.1, 1), new THREE.MeshStandardMaterial({ color: 0xaaaaaa }));
+    //const material = new THREE.MeshStandardMaterial({ map: floorTextures[currentFloorTextureIndex] });
+    const material = getFloorMaterial(currentFloorTextureIndex);
+
+    const floor = new THREE.Mesh(new THREE.BoxGeometry(1, 0.1, 1), material);
     floor.position.set(x, y, z);
     scene.add(floor);
     collidableMeshes.push(floor);
@@ -376,7 +451,7 @@ function checkForExit() {
             if (distance < 0.5) {
                 score += params.mazeSize;
                 updateScoreDisplay();
-                // generateMaze();
+                generateMaze();
             }
         }
     });
