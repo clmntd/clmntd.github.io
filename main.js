@@ -30,8 +30,7 @@ function updateScoreDisplay() {
     highScoreDisplay.innerText = `High Score: ${highScore}`;
 }
 
-
-
+let scoreMultiplier = 1;
 
 let currentWallTextureIndex = 0;
 let currentFloorTextureIndex = 0;
@@ -48,6 +47,27 @@ const floorTextures = [
     textureLoader.load('textures/dungeon_floor.jpg'),
     textureLoader.load('textures/glass.png')
 ];
+
+//sunlight thing
+const sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
+sunLight.position.set(10, 20, 10);
+sunLight.castShadow = true;
+
+sunLight.shadow.mapSize.width = 2048;
+sunLight.shadow.mapSize.height = 2048;
+sunLight.shadow.camera.near = 1;
+sunLight.shadow.camera.far = 50;
+sunLight.shadow.camera.left = -20;
+sunLight.shadow.camera.right = 20;
+sunLight.shadow.camera.top = 20;
+sunLight.shadow.camera.bottom = -20;
+
+scene.add(sunLight);
+
+renderer.setSize(window.innerWidth,window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
 
 //# GUI setup
 const gui = new dat.GUI();
@@ -71,7 +91,21 @@ gui.add(textureParams, 'theme', Object.keys(themes)).onChange(value => {
     const index = themes[value];
     currentWallTextureIndex = index;
     currentFloorTextureIndex = index;
+
+    if (value === 'Glass') {
+    scoreMultiplier = 1.5;
+    } else {
+        scoreMultiplier = 1;
+    }
+
+    if (value === 'Hedge') {
+    sunLight.visible = true;
+    } else {
+        sunLight.visible = false;
+    }
+
     generateMaze();
+
 });
 
 const params = {
@@ -350,9 +384,12 @@ function createWall(x, y, z) {
     const material = getWallMaterial(currentWallTextureIndex);
 
     const wall = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), material);
+    wall.castShadow = true;
+    wall.receiveShadow = true;
     wall.position.set(x, y + 0.55, z);
     scene.add(wall);
     collidableMeshes.push(wall);
+    
 }
 
 function createFloorTile(x, y, z) {
@@ -360,6 +397,7 @@ function createFloorTile(x, y, z) {
     const material = getFloorMaterial(currentFloorTextureIndex);
 
     const floor = new THREE.Mesh(new THREE.BoxGeometry(1, 0.1, 1), material);
+    floor.receiveShadow = true;
     floor.position.set(x, y, z);
     scene.add(floor);
     collidableMeshes.push(floor);
@@ -449,7 +487,7 @@ function checkForExit() {
         if (child.isMesh && child !== player && child.material.color.equals(new THREE.Color(0xff0000))) {
             const distance = player.position.distanceTo(child.position);
             if (distance < 0.5) {
-                score += params.mazeSize;
+                score += params.mazeSize * scoreMultiplier;
                 updateScoreDisplay();
                 generateMaze();
             }
